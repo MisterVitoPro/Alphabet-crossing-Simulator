@@ -12,13 +12,13 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
-}
+    implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
+    implementation("ch.qos.logback:logback-classic:1.4.0")
+    implementation("ch.qos.logback:logback-core:1.4.0")
+    implementation("org.slf4j:slf4j-api:2.0.1")
 
-tasks.test {
-    useJUnitPlatform()
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "15"
 }

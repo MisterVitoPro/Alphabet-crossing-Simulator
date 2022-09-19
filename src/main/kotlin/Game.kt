@@ -1,4 +1,7 @@
+import mu.KotlinLogging
 import java.util.concurrent.atomic.AtomicInteger
+
+private val logger = KotlinLogging.logger {}
 
 data class Card(val letter: Char, val isHopForward: Boolean = false)
 
@@ -52,7 +55,7 @@ class Game(private val numOfPlayers: Int) {
     ): Player {
         val p = Player(id, aiPlayerAsking, aiLetterSelecting)
         (0 until startingHand).forEach { _ ->
-            draw(p)
+            draw(p, false)
         }
         p.printHand()
         return p
@@ -80,7 +83,7 @@ class Game(private val numOfPlayers: Int) {
             }
         }
 
-        println("!!!!!! Player ${winner!!.id} Wins !!!!!!")
+        logger.info { "!!!!!! Player ${winner!!.id} Won in $currentTurn Turns !!!!!!" }
         return Results(currentTurn.get(), deck.size, winner, players.map { it.spacesMoved }, players)
     }
 
@@ -91,7 +94,7 @@ class Game(private val numOfPlayers: Int) {
         val char = playerCardAsk.second
         val card: Card? = askedPlayer.hasLetterCard(char)
         return if (card != null) {
-            println("Yes I do!")
+            logger.debug { "Player ${askedPlayer.id}: \"Yes I do!\"" }
             askedPlayer.playCard(card)
             currentPlayer.gainCard(card)
             checkForMatches(currentPlayer)
@@ -107,13 +110,13 @@ class Game(private val numOfPlayers: Int) {
     private fun nextTurn() {
         val activePlayers = players.filter { !it.isEliminated }
         currentPlayer = activePlayers[currentTurn.incrementAndGet() % activePlayers.size]
-        println("=== Turn $currentTurn with Player ${currentPlayer.id} (${currentPlayer.spacesMoved}) ===")
+        logger.debug { "=== Turn $currentTurn with Player ${currentPlayer.id} (${currentPlayer.spacesMoved}) ===" }
     }
 
-    private fun draw(p: Player = currentPlayer): Card {
+    private fun draw(p: Player = currentPlayer, log: Boolean = true): Card {
         val c = deck.removeFirst()
         p.gainCard(c)
-        println("Player ${p.id} drew a ${if (c.isHopForward) "Hop Forward" else "'${c.letter}'"}.")
+        if(log) logger.debug { "Player ${p.id} drew a ${if (c.isHopForward) "Hop Forward" else "'${c.letter}'"}." }
         hopForwardCheck(p)
         checkForMatches(p)
         return c
@@ -123,7 +126,7 @@ class Game(private val numOfPlayers: Int) {
         val matches = p.getMatches()
         if (matches.isNotEmpty()) {
             matches.keys.forEach {
-                println("Player ${p.id} has matching '${it.letter}'")
+                logger.info { "Player ${p.id} has matching '${it.letter}'" }
                 p.playCard(it)
                 p.playCard(it)
                 p.moveSpace()
@@ -142,7 +145,7 @@ class Game(private val numOfPlayers: Int) {
 
     private fun eliminatePlayer(p: Player): Boolean {
         return if (canEliminate((p)) && !p.isEliminated) {
-            println("## Player ${p.id} cannot win and must be eliminated.")
+            logger.debug { "## Player ${p.id} cannot win and must be eliminated." }
             p.eliminate()
             true
         } else false
@@ -158,7 +161,7 @@ class Game(private val numOfPlayers: Int) {
     private fun hopForwardCheck(p: Player) {
         val hopCard: Card? = p.hasHopCard()
         if (hopCard != null) {
-            println("Player ${p.id} played a Hop Forward.")
+            logger.debug { "Player ${p.id} played a Hop Forward." }
             p.playCard(hopCard)
             p.moveSpace()
             if (shouldDrawCard(p)) draw(p)

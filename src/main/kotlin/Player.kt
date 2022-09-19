@@ -1,4 +1,7 @@
+import mu.KotlinLogging
 import java.util.concurrent.ThreadLocalRandom
+
+private val logger = KotlinLogging.logger {}
 
 class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelecting: AILetterSelecting) {
 
@@ -31,7 +34,7 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
     }
 
     fun printHand() {
-        println("Player $id: ${hand.map { it.letter }}")
+        logger.debug { "Player $id: ${hand.map { it.letter }}" }
     }
 
     fun gainCard(c: Card) {
@@ -44,12 +47,12 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
 
     fun moveSpace() {
         spacesMoved += 1
-        println("Player $id moves. ($spacesMoved)")
+        logger.debug { "Player $id moves. ($spacesMoved)" }
     }
 
     private fun printHandAndAsk(playerAndChar: Pair<Player, Char>) {
         this.printHand()
-        println("Player ${this.id} asks, \"Player ${playerAndChar.first.id}, do you have a(n) '${playerAndChar.second}'\"")
+        logger.debug { "Player ${this.id} asks, \"Player ${playerAndChar.first.id}, do you have a(n) '${playerAndChar.second}'\"" }
         playerAndChar.first.printHand()
     }
 
@@ -57,7 +60,7 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
         val playersWithThisPlayer = players.filter { it.id != this.id }
 
         if (aiPlayerAsking == AIPlayerAsking.REMEMBERS_PREVIOUS_ASKS && previouslyAskedChars.size > 0) {
-            println("Previously Asked: ${previouslyAskedChars.mapValues { "Player ${it.value.id}"}}")
+            logger.debug { "Previously Asked: ${previouslyAskedChars.mapValues { "Player ${it.value.id}" }}" }
             val handCharsInPreviouslyAsked: Char? =
                 hand.map { it.letter }.firstOrNull { previouslyAskedChars.keys.contains(it) }
             if (handCharsInPreviouslyAsked != null && previouslyAskedChars[handCharsInPreviouslyAsked] != this) {
@@ -86,10 +89,10 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
                 val nonAsked = handChars.filter { !previouslyAsked.contains(it) }
                 val c: Char = if (nonAsked.isEmpty()) {
                     previouslyAsked.clear()
-                    println("Reset Previously Asked Letters.")
+                    logger.debug { "Reset Previously Asked Letters." }
                     handChars.random()
                 } else {
-                    println("Previously Asked: $previouslyAsked")
+                    logger.debug { "Previously Asked Letters: $previouslyAsked" }
                     nonAsked.random()
                 }
                 previouslyAsked.add(c)

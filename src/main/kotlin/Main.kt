@@ -1,6 +1,11 @@
-fun main(args: Array<String>) {
+import mu.KotlinLogging
+import kotlin.jvm.internal.Intrinsics.Kotlin
+
+private val logger = KotlinLogging.logger {}
+
+fun main() {
     val numOfPlayer = 5
-    val numOfGames = 5000
+    val numOfGames = 2000
     val aggregated = mutableListOf<Results>()
 
     (0 until numOfGames).forEach { _ ->
@@ -12,15 +17,15 @@ fun main(args: Array<String>) {
     val averageSpaces = aggregated.map { it.playerMoves.average() }.average()
     val playerWins = aggregated.groupingBy { it.winningPlayer!!.id }.eachCount().toSortedMap()
 
-    println("Games Played: ${aggregated.size}.")
+    logger.info { "Games Played: ${aggregated.size}." }
     for (w in playerWins) {
-        println("${w.key} (${w.value} wins) - ${aggregated[0].players.first { it.id == w.key }.aiPlayerAsking}, ${aggregated[0].players.first { it.id == w.key }.aiLetterSelecting}.")
+        logger.info { "${w.key} (${w.value} wins) - ${aggregated[0].players.first { it.id == w.key }.aiPlayerAsking}, ${aggregated[0].players.first { it.id == w.key }.aiLetterSelecting}." }
     }
-    println("Average Spaces Moved: ${String.format("%.2f", averageSpaces)}.")
-    println("Average Number of Turns: ${String.format("%.2f", averageTurns)}.")
-    println("Shortest Game: ${aggregated.map { it.turns }.minByOrNull { it }}.")
-    println("Longest Game: ${aggregated.map { it.turns }.maxByOrNull { it }}.")
-    println("Average Game Time: ${String.format("%.2f", (averageTurns * 20 / 60))} minutes.")
+    logger.info { "Average Spaces Moved: ${String.format("%.2f", averageSpaces)}." }
+    logger.info { "Average Number of Turns: ${String.format("%.2f", averageTurns)}." }
+    logger.info { "Shortest Game: ${aggregated.map { it.turns }.minByOrNull { it }}." }
+    logger.info { "Longest Game: ${aggregated.map { it.turns }.maxByOrNull { it }}." }
+    logger.info { "Average Game Time: ${String.format("%.2f", (averageTurns * 20 / 60))} minutes." }
 }
 
 /**
