@@ -1,5 +1,3 @@
-import java.io.File
-
 fun main(args: Array<String>) {
     val numOfPlayer = 5
     val numOfGames = 5000
