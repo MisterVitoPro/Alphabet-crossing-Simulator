@@ -47,7 +47,7 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
         println("Player $id moves. ($spacesMoved)")
     }
 
-    fun printHandAndAsk(playerAndChar: Pair<Player, Char>){
+    private fun printHandAndAsk(playerAndChar: Pair<Player, Char>) {
         this.printHand()
         println("Player ${this.id} asks, \"Player ${playerAndChar.first.id}, do you have a(n) '${playerAndChar.second}'\"")
         playerAndChar.first.printHand()
@@ -58,8 +58,9 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
 
         if (aiPlayerAsking == AIPlayerAsking.REMEMBERS_PREVIOUS_ASKS && previouslyAskedChars.size > 0) {
             println("Previously Asked: $previouslyAskedChars")
-            val handCharsInPreviouslyAsked: Char? = hand.map { it.letter }.firstOrNull{ previouslyAskedChars.keys.contains(it)}
-            if(handCharsInPreviouslyAsked != null && previouslyAskedChars[handCharsInPreviouslyAsked] != this){
+            val handCharsInPreviouslyAsked: Char? =
+                hand.map { it.letter }.firstOrNull { previouslyAskedChars.keys.contains(it) }
+            if (handCharsInPreviouslyAsked != null && previouslyAskedChars[handCharsInPreviouslyAsked] != this) {
                 val pair = Pair(previouslyAskedChars[handCharsInPreviouslyAsked]!!, handCharsInPreviouslyAsked)
                 printHandAndAsk(pair)
                 return pair
@@ -72,6 +73,7 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
                 val player = playersWithThisPlayer.maxByOrNull { it.handSize() }!!
                 playersWithThisPlayer.indexOf(player)
             }
+
             else -> ThreadLocalRandom.current().nextInt(0, playersWithThisPlayer.size)
         }
         val p = playersWithThisPlayer[pIndex]
@@ -79,10 +81,10 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
         //Determine which letter to ask for
         val handChars = hand.map { it.letter }
 
-        val askLetter: Char = when(aiLetterSelecting) {
+        val askLetter: Char = when (aiLetterSelecting) {
             AILetterSelecting.PREVIOUSLY_ASKED_LETTER -> {
                 val nonAsked = handChars.filter { !previouslyAsked.contains(it) }
-                val c: Char = if(nonAsked.isEmpty()){
+                val c: Char = if (nonAsked.isEmpty()) {
                     previouslyAsked.clear()
                     println("Reset Previously Asked Letters.")
                     handChars.random()
@@ -93,6 +95,7 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
                 previouslyAsked.add(c)
                 c
             }
+
             else -> handChars.random()
         }
 

@@ -1,6 +1,6 @@
-fun main(args: Array<String>){
+fun main(args: Array<String>) {
     val numOfPlayer = 5
-    val numOfGames = 1000
+    val numOfGames = 2000
     val aggregated = mutableListOf<Results>()
 
     (0 until numOfGames).forEach { _ ->
@@ -12,7 +12,7 @@ fun main(args: Array<String>){
     val playerWins = aggregated.groupingBy { it.winningPlayer!!.id }.eachCount().toSortedMap()
 
     println("Games Played: ${aggregated.size}.")
-    for(w in playerWins){
+    for (w in playerWins) {
         println("${w.key} (${w.value} wins) - ${aggregated[0].players.first { it.id == w.key }.aiPlayerAsking}, ${aggregated[0].players.first { it.id == w.key }.aiLetterSelecting}.")
     }
     println("Average Spaces Moved: ${String.format("%.2f", averageSpaces)}.")
@@ -40,5 +40,18 @@ Average Number of Turns: 41.54.
 Shortest Game: 10.
 Longest Game: 111.
 Average Game Time: 13.85 minutes.
+ */
+
+/**
+Games Played: 2000.
+0 (685 wins) - REMEMBERS_PREVIOUS_ASKS, RANDOM.
+1 (534 wins) - LARGEST_HAND, RANDOM.
+3 (388 wins) - RANDOM, RANDOM.
+4 (393 wins) - RANDOM, RANDOM.
+Average Spaces Moved: 3.83.
+Average Number of Turns: 30.21.
+Shortest Game: 3.
+Longest Game: 67.
+Average Game Time: 10.07 minutes.
  */
 
