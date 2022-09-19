@@ -1,10 +1,13 @@
+import java.io.File
+
 fun main(args: Array<String>) {
     val numOfPlayer = 5
-    val numOfGames = 2000
+    val numOfGames = 5000
     val aggregated = mutableListOf<Results>()
 
     (0 until numOfGames).forEach { _ ->
-        aggregated.add(Game(numOfPlayer).run())
+        val r = Game(numOfPlayer).run()
+        aggregated.add(r)
     }
 
     val averageTurns = aggregated.map { it.turns }.average()

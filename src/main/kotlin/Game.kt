@@ -33,10 +33,8 @@ class Game(private val numOfPlayers: Int) {
         deck.addAll(cardList.filter { !it.isHopForward })
         deck.shuffle()
 
-        players.add(setupNewPlayer(0, startingHand, AIPlayerAsking.REMEMBERS_PREVIOUS_ASKS, AILetterSelecting.RANDOM))
-        players.add(setupNewPlayer(1, startingHand, AIPlayerAsking.LARGEST_HAND, AILetterSelecting.RANDOM))
-        (3 until numOfPlayers).forEach {
-            val p = setupNewPlayer(it, startingHand, AIPlayerAsking.RANDOM, AILetterSelecting.RANDOM)
+        (0 until numOfPlayers).forEach {
+            val p = setupNewPlayer(it, startingHand, AIPlayerAsking.REMEMBERS_PREVIOUS_ASKS, AILetterSelecting.RANDOM)
             players.add(p)
         }
 

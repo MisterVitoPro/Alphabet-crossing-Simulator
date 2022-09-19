@@ -57,7 +57,7 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
         val playersWithThisPlayer = players.filter { it.id != this.id }
 
         if (aiPlayerAsking == AIPlayerAsking.REMEMBERS_PREVIOUS_ASKS && previouslyAskedChars.size > 0) {
-            println("Previously Asked: $previouslyAskedChars")
+            println("Previously Asked: ${previouslyAskedChars.mapValues { "Player ${it.value.id}"}}")
             val handCharsInPreviouslyAsked: Char? =
                 hand.map { it.letter }.firstOrNull { previouslyAskedChars.keys.contains(it) }
             if (handCharsInPreviouslyAsked != null && previouslyAskedChars[handCharsInPreviouslyAsked] != this) {
