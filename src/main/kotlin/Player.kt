@@ -3,10 +3,9 @@ import java.util.concurrent.ThreadLocalRandom
 
 private val logger = KotlinLogging.logger {}
 
-class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelecting: AILetterSelecting) {
+class Player(val id: Int, val aiDifficulty: AIDifficulty) {
 
     private val hand: MutableList<Card> = mutableListOf()
-    private val previouslyAsked: MutableList<Char> = mutableListOf()
 
     var spacesMoved = 0
         private set
@@ -59,49 +58,27 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
     fun callForCard(players: List<Player>, previouslyAskedChars: HashMap<Char, Player>): Pair<Player, Char> {
         val playersWithThisPlayer = players.filter { it.id != this.id }
 
-        if (aiPlayerAsking == AIPlayerAsking.REMEMBERS_PREVIOUS_ASKS && previouslyAskedChars.size > 0) {
-            logger.debug { "Previously Asked: ${previouslyAskedChars.mapValues { "Player ${it.value.id}" }}" }
-            val handCharsInPreviouslyAsked: Char? =
-                hand.map { it.letter }.firstOrNull { previouslyAskedChars.keys.contains(it) }
-            if (handCharsInPreviouslyAsked != null && previouslyAskedChars[handCharsInPreviouslyAsked] != this) {
-                val pair = Pair(previouslyAskedChars[handCharsInPreviouslyAsked]!!, handCharsInPreviouslyAsked)
-                printHandAndAsk(pair)
-                return pair
+        if (aiDifficulty == AIDifficulty.EXPERT) {
+            if (previouslyAskedChars.size > 0) {
+                logger.debug { "Previously Asked: ${previouslyAskedChars.mapValues { "Player ${it.value.id}" }}" }
+                val handCharsInPreviouslyAsked: Char? =
+                    hand.map { it.letter }.firstOrNull { previouslyAskedChars.keys.contains(it) }
+                if (handCharsInPreviouslyAsked != null && previouslyAskedChars[handCharsInPreviouslyAsked] != this) {
+                    val pair = Pair(previouslyAskedChars[handCharsInPreviouslyAsked]!!, handCharsInPreviouslyAsked)
+                    printHandAndAsk(pair)
+                    return pair
+                }
+            } else {
+                val p = playersWithThisPlayer.maxByOrNull { it.handSize() }!!
+                val pI = playersWithThisPlayer.indexOf(p)
+                return Pair(playersWithThisPlayer[pI], hand.map { it.letter }.random())
             }
         }
 
         //Determine which player to ask for a card
-        val pIndex = when (aiPlayerAsking) {
-            AIPlayerAsking.LARGEST_HAND -> {
-                val player = playersWithThisPlayer.maxByOrNull { it.handSize() }!!
-                playersWithThisPlayer.indexOf(player)
-            }
-
-            else -> ThreadLocalRandom.current().nextInt(0, playersWithThisPlayer.size)
-        }
+        val pIndex = ThreadLocalRandom.current().nextInt(0, playersWithThisPlayer.size)
         val p = playersWithThisPlayer[pIndex]
-
-        //Determine which letter to ask for
-        val handChars = hand.map { it.letter }
-
-        val askLetter: Char = when (aiLetterSelecting) {
-            AILetterSelecting.PREVIOUSLY_ASKED_LETTER -> {
-                val nonAsked = handChars.filter { !previouslyAsked.contains(it) }
-                val c: Char = if (nonAsked.isEmpty()) {
-                    previouslyAsked.clear()
-                    logger.debug { "Reset Previously Asked Letters." }
-                    handChars.random()
-                } else {
-                    logger.debug { "Previously Asked Letters: $previouslyAsked" }
-                    nonAsked.random()
-                }
-                previouslyAsked.add(c)
-                c
-            }
-
-            else -> handChars.random()
-        }
-
+        val askLetter: Char = hand.map { it.letter }.random()
         val pair = Pair(p, askLetter)
         printHandAndAsk(pair)
         return pair
@@ -109,13 +86,7 @@ class Player(val id: Int, val aiPlayerAsking: AIPlayerAsking, val aiLetterSelect
 
 }
 
-enum class AIPlayerAsking {
-    RANDOM, // Ask a random player
-    LARGEST_HAND, //Ask a player with the largest hand
-    REMEMBERS_PREVIOUS_ASKS
-}
-
-enum class AILetterSelecting {
-    RANDOM, // Ask for random letter from hand
-    PREVIOUSLY_ASKED_LETTER //Asks only for cards it has not asked before
+enum class AIDifficulty {
+    EASY, // Ask a random player
+    EXPERT
 }

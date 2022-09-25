@@ -24,6 +24,7 @@ class Game(private val numOfPlayers: Int) {
     var winner: Player? = null
     private val currentTurn = AtomicInteger()
     private lateinit var currentPlayer: Player
+    var previouslyAskedChars: HashMap<Char, Player> = HashMap()
 
     /**
      * Set up the Game and players with cards and establish any starter matches
@@ -37,7 +38,7 @@ class Game(private val numOfPlayers: Int) {
         deck.shuffle()
 
         (0 until numOfPlayers).forEach {
-            val p = setupNewPlayer(it, startingHand, AIPlayerAsking.REMEMBERS_PREVIOUS_ASKS, AILetterSelecting.RANDOM)
+            val p = setupNewPlayer(it, startingHand, AIDifficulty.values()[it%AIDifficulty.values().size])
             players.add(p)
         }
 
@@ -47,13 +48,8 @@ class Game(private val numOfPlayers: Int) {
         nextTurn()
     }
 
-    private fun setupNewPlayer(
-        id: Int,
-        startingHand: Int,
-        aiPlayerAsking: AIPlayerAsking,
-        aiLetterSelecting: AILetterSelecting
-    ): Player {
-        val p = Player(id, aiPlayerAsking, aiLetterSelecting)
+    private fun setupNewPlayer(id: Int, startingHand: Int, aiDifficulty: AIDifficulty): Player {
+        val p = Player(id, aiDifficulty)
         (0 until startingHand).forEach { _ ->
             draw(p, false)
         }
@@ -62,9 +58,11 @@ class Game(private val numOfPlayers: Int) {
     }
 
     fun run(): Results {
+        println("########## Starting new Game ##########")
         setup()
 
         while (winner == null && currentTurn.get() < 150) {
+            // Ask for Card
             val askedCard: Pair<Player, Char> = currentPlayer.callForCard(players, previouslyAskedChars)
             val hadMatch = askPlayerAndCheckMatches(askedCard)
 
@@ -76,6 +74,7 @@ class Game(private val numOfPlayers: Int) {
 
             handSizeAndDeckCheck(currentPlayer)
             winnerCheck()
+            // Check if a player needs to be eliminated
             players.forEach { eliminatePlayer(it) }
 
             if (winner == null && (!hadMatch || currentPlayer.isEliminated)) {
@@ -83,11 +82,9 @@ class Game(private val numOfPlayers: Int) {
             }
         }
 
-        logger.info { "!!!!!! Player ${winner!!.id} Won in $currentTurn Turns !!!!!!" }
+        logger.info { "!!!!!! Player ${winner!!.id} Won in $currentTurn Turns (${winner!!.aiDifficulty}) !!!!!!" }
         return Results(currentTurn.get(), deck.size, winner, players.map { it.spacesMoved }, players)
     }
-
-    var previouslyAskedChars: HashMap<Char, Player> = HashMap()
 
     private fun askPlayerAndCheckMatches(playerCardAsk: Pair<Player, Char>): Boolean {
         val askedPlayer = playerCardAsk.first
@@ -116,7 +113,7 @@ class Game(private val numOfPlayers: Int) {
     private fun draw(p: Player = currentPlayer, log: Boolean = true): Card {
         val c = deck.removeFirst()
         p.gainCard(c)
-        if(log) logger.debug { "Player ${p.id} drew a ${if (c.isHopForward) "Hop Forward" else "'${c.letter}'"}." }
+        if (log) logger.debug { "Player ${p.id} drew a ${if (c.isHopForward) "Hop Forward" else "'${c.letter}'"}." }
         hopForwardCheck(p)
         checkForMatches(p)
         return c
