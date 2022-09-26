@@ -32,4 +32,3 @@ fun main() {
     logger.info { "Longest Game: ${aggregated.map { it.turns }.maxByOrNull { it }}" }
     logger.info { "Average Game Time: ${String.format("%.2f", (averageTurns * 18 / 60))} minutes." }
 }
-

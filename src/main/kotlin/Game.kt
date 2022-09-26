@@ -37,16 +37,20 @@ class Game(private val numOfPlayers: Int) {
         deck.shuffle()
 
         (0 until numOfPlayers).forEach {
-            val p = setupNewPlayer(it, startingHand, AIDifficulty.values()[it%AIDifficulty.values().size])
+            val p = setupNewPlayer(it, startingHand, AIDifficulty.values()[it % AIDifficulty.values().size])
             players.add(p)
         }
 
         deck.addAll(cardList.filter { it.isHopForward })
         deck.shuffle()
 
+        // We need to initialize the Turns
         nextTurn()
     }
 
+    /**
+     * Creates a new Player, sets its difficulty, and creates the players starting hand
+     */
     private fun setupNewPlayer(id: Int, startingHand: Int, aiDifficulty: AIDifficulty): Player {
         val p = Player(id, aiDifficulty)
         (0 until startingHand).forEach { _ ->
@@ -73,7 +77,7 @@ class Game(private val numOfPlayers: Int) {
             handSizeAndDeckCheck(currentPlayer)
 
             // Check for a Winner
-            if(hasWinner()){
+            if (hasWinner()) {
                 logger.info { "!!!!!! Player ${currentPlayer.id} Won in $currentTurn Turns (${currentPlayer.aiDifficulty}) !!!!!!" }
                 break
             }

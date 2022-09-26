@@ -59,11 +59,11 @@ class Player(val id: Int, val aiDifficulty: AIDifficulty) {
         return pair
     }
 
-    fun removeAskedCardsFromList(askedChar: Char){
-        myAskedCards.removeAll { it.first == askedChar}
+    fun removeAskedCardsFromList(askedChar: Char) {
+        myAskedCards.removeAll { it.first == askedChar }
     }
 
-    private fun getAvailableAsks(opponents: List<Player>): List<Pair<Char, Player>>{
+    private fun getAvailableAsks(opponents: List<Player>): List<Pair<Char, Player>> {
         val l = mutableListOf<Pair<Char, Player>>()
         hand.map { it.letter }.forEach { char ->
             opponents.forEach { p ->
@@ -84,7 +84,7 @@ class Player(val id: Int, val aiDifficulty: AIDifficulty) {
                     return createPairWithPrint(handCharsInPreviouslyAsked, previouslyAskedChars[handCharsInPreviouslyAsked]!!)
                 }
             }
-            if(myAskedCards.size > 0) {
+            if (myAskedCards.size > 0) {
                 logger.debug { "My previously Asked: ${myAskedCards.map { "${it.first}=Player ${it.second.id}" }}" }
                 val allAsks = getAvailableAsks(opponents)
                 val availableAsks = allAsks.filter { !myAskedCards.contains(it) }
@@ -98,13 +98,12 @@ class Player(val id: Int, val aiDifficulty: AIDifficulty) {
             return createPairWithPrint(hand.map { it.letter }.random(), opponents[pI])
         }
 
-        //Determine which player to ask for a card
+        // Determine which player to ask for a card
         val pIndex = ThreadLocalRandom.current().nextInt(0, opponents.size)
         val p = opponents[pIndex]
         val askLetter: Char = hand.map { it.letter }.random()
         return createPairWithPrint(askLetter, p)
     }
-
 }
 
 enum class AIDifficulty {

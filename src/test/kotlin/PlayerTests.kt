@@ -1,3 +1,1 @@
-class PlayerTests {
-
-}
+class PlayerTests
