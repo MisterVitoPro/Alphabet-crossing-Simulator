@@ -4,7 +4,7 @@ private val logger = KotlinLogging.logger {}
 
 fun main() {
     val numOfPlayer = 5
-    val numOfGames = 5000
+    val numOfGames = 2000
     val aggregated = mutableListOf<Results>()
 
     (0 until numOfGames).forEach { _ ->
@@ -24,6 +24,6 @@ fun main() {
     logger.info { "Average Number of Turns: ${String.format("%.2f", averageTurns)}." }
     logger.info { "Shortest Game: ${aggregated.map { it.turns }.minByOrNull { it }}." }
     logger.info { "Longest Game: ${aggregated.map { it.turns }.maxByOrNull { it }}." }
-    logger.info { "Average Game Time: ${String.format("%.2f", (averageTurns * 20 / 60))} minutes." }
+    logger.info { "Average Game Time: ${String.format("%.2f", (averageTurns * 18 / 60))} minutes." }
 }
 

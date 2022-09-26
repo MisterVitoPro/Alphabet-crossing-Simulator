@@ -63,12 +63,12 @@ class Game(private val numOfPlayers: Int) {
 
         while (winner == null && currentTurn.get() < 150) {
             // Ask for Card
-            val askedCard: Pair<Player, Char> = currentPlayer.callForCard(players, previouslyAskedChars)
+            val askedCard: Pair<Char, Player> = currentPlayer.callForCard(players, previouslyAskedChars)
             val hadMatch = askPlayerAndCheckMatches(askedCard)
 
             // Check if players need to draw cards
-            val askedPlayer = askedCard.first
-            if (shouldDrawCard(askedCard.first)) {
+            val askedPlayer: Player = askedCard.second
+            if (shouldDrawCard(askedPlayer)) {
                 draw(askedPlayer)
             }
 
@@ -86,9 +86,9 @@ class Game(private val numOfPlayers: Int) {
         return Results(currentTurn.get(), deck.size, winner, players.map { it.spacesMoved }, players)
     }
 
-    private fun askPlayerAndCheckMatches(playerCardAsk: Pair<Player, Char>): Boolean {
-        val askedPlayer = playerCardAsk.first
-        val char = playerCardAsk.second
+    private fun askPlayerAndCheckMatches(playerCardAsk: Pair<Char, Player>): Boolean {
+        val askedPlayer = playerCardAsk.second
+        val char = playerCardAsk.first
         val card: Card? = askedPlayer.hasLetterCard(char)
         return if (card != null) {
             logger.debug { "Player ${askedPlayer.id}: \"Yes I do!\"" }
@@ -96,6 +96,9 @@ class Game(private val numOfPlayers: Int) {
             currentPlayer.gainCard(card)
             checkForMatches(currentPlayer)
             previouslyAskedChars.remove(char)
+
+            currentPlayer.removeAskedCardsFromList(char)
+            askedPlayer.removeAskedCardsFromList(char)
             true
         } else {
             if (doesDeckHaveCards()) draw()
@@ -127,6 +130,7 @@ class Game(private val numOfPlayers: Int) {
                 p.playCard(it)
                 p.playCard(it)
                 p.moveSpace()
+                p.removeAskedCardsFromList(it.letter)
             }
             handSizeAndDeckCheck(p)
         }
