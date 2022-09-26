@@ -21,7 +21,6 @@ class Game(private val numOfPlayers: Int) {
     private val players: MutableList<Player> = mutableListOf()
     private val cardList: MutableList<Card> = createCardList()
     private val deck: MutableList<Card> = mutableListOf()
-    var winner: Player? = null
     private val currentTurn = AtomicInteger()
     private lateinit var currentPlayer: Player
     var previouslyAskedChars: HashMap<Char, Player> = HashMap()
@@ -61,7 +60,7 @@ class Game(private val numOfPlayers: Int) {
         println("########## Starting new Game ##########")
         setup()
 
-        while (winner == null && currentTurn.get() < 150) {
+        do {
             // Ask for Card
             val askedCard: Pair<Char, Player> = currentPlayer.callForCard(players, previouslyAskedChars)
             val hadMatch = askPlayerAndCheckMatches(askedCard)
@@ -71,19 +70,24 @@ class Game(private val numOfPlayers: Int) {
             if (shouldDrawCard(askedPlayer)) {
                 draw(askedPlayer)
             }
-
             handSizeAndDeckCheck(currentPlayer)
-            winnerCheck()
+
+            // Check for a Winner
+            if(hasWinner()){
+                logger.info { "!!!!!! Player ${currentPlayer.id} Won in $currentTurn Turns (${currentPlayer.aiDifficulty}) !!!!!!" }
+                break
+            }
+
             // Check if a player needs to be eliminated
             players.forEach { eliminatePlayer(it) }
 
-            if (winner == null && (!hadMatch || currentPlayer.isEliminated)) {
+            // Check if Player needs to go again or Next Turn
+            if (!hadMatch || currentPlayer.isEliminated) {
                 nextTurn()
             }
-        }
+        } while (currentTurn.get() < 150)
 
-        logger.info { "!!!!!! Player ${winner!!.id} Won in $currentTurn Turns (${winner!!.aiDifficulty}) !!!!!!" }
-        return Results(currentTurn.get(), deck.size, winner, players.map { it.spacesMoved }, players)
+        return Results(currentTurn.get(), deck.size, currentPlayer, players.map { it.spacesMoved }, players)
     }
 
     private fun askPlayerAndCheckMatches(playerCardAsk: Pair<Char, Player>): Boolean {
@@ -169,13 +173,13 @@ class Game(private val numOfPlayers: Int) {
         }
     }
 
-    private fun winnerCheck() {
+    private fun hasWinner(): Boolean {
         for (p in players) {
             if (p.spacesMoved >= SPACES_TO_WIN) {
-                winner = p
-                break;
+                return true
             }
         }
+        return false
     }
 
     private fun doesDeckHaveCards(): Boolean {
