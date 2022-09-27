@@ -22,8 +22,7 @@ class Game(private val numOfPlayers: Int) {
     private val cardList: MutableList<Card> = createCardList()
     private val deck: MutableList<Card> = mutableListOf()
     private val currentTurn = AtomicInteger()
-    private lateinit var currentPlayer: Player
-    var previouslyAskedChars: HashMap<Char, Player> = HashMap()
+    private var previouslyAskedChars: HashMap<Char, Player> = HashMap()
 
     /**
      * Set up the Game and players with cards and establish any starter matches
@@ -45,7 +44,7 @@ class Game(private val numOfPlayers: Int) {
         deck.shuffle()
 
         // We need to initialize the Turns
-        nextTurn()
+        nextPlayersTurn()
     }
 
     /**
@@ -54,7 +53,7 @@ class Game(private val numOfPlayers: Int) {
     private fun setupNewPlayer(id: Int, startingHand: Int, aiDifficulty: AIDifficulty): Player {
         val p = Player(id, aiDifficulty)
         (0 until startingHand).forEach { _ ->
-            draw(p, false)
+            drawCard(p, false)
         }
         p.printHand()
         return p
@@ -64,15 +63,16 @@ class Game(private val numOfPlayers: Int) {
         println("########## Starting new Game ##########")
         setup()
 
+        var currentPlayer: Player = players[0]
         do {
             // Ask for Card
             val askedCard: Pair<Char, Player> = currentPlayer.callForCard(players, previouslyAskedChars)
-            val hadMatch = askPlayerAndCheckMatches(askedCard)
+            val hadMatch = askPlayerAndCheckMatches(currentPlayer, askedCard)
 
             // Check if players need to draw cards
             val askedPlayer: Player = askedCard.second
             if (shouldDrawCard(askedPlayer)) {
-                draw(askedPlayer)
+                drawCard(askedPlayer)
             }
             handSizeAndDeckCheck(currentPlayer)
 
@@ -83,45 +83,46 @@ class Game(private val numOfPlayers: Int) {
             }
 
             // Check if a player needs to be eliminated
-            players.forEach { eliminatePlayer(it) }
+            players.forEach { eliminate(it) }
 
             // Check if Player needs to go again or Next Turn
             if (!hadMatch || currentPlayer.isEliminated) {
-                nextTurn()
+                currentPlayer = nextPlayersTurn()
             }
         } while (currentTurn.get() < 150)
 
         return Results(currentTurn.get(), deck.size, currentPlayer, players.map { it.spacesMoved }, players)
     }
 
-    private fun askPlayerAndCheckMatches(playerCardAsk: Pair<Char, Player>): Boolean {
+    private fun askPlayerAndCheckMatches(askingPlayer:  Player, playerCardAsk: Pair<Char, Player>): Boolean {
         val askedPlayer = playerCardAsk.second
         val char = playerCardAsk.first
         val card: Card? = askedPlayer.hasLetterCard(char)
         return if (card != null) {
             logger.debug { "Player ${askedPlayer.id}: \"Yes I do!\"" }
             askedPlayer.playCard(card)
-            currentPlayer.gainCard(card)
-            checkForMatches(currentPlayer)
+            askingPlayer.gainCard(card)
+            checkForMatches(askingPlayer)
             previouslyAskedChars.remove(char)
 
-            currentPlayer.removeAskedCardsFromList(char)
+            askingPlayer.removeAskedCardsFromList(char)
             askedPlayer.removeAskedCardsFromList(char)
             true
         } else {
-            if (doesDeckHaveCards()) draw()
-            previouslyAskedChars[char] = currentPlayer
+            if (doesDeckHaveCards()) drawCard(askingPlayer)
+            previouslyAskedChars[char] = askingPlayer
             false
         }
     }
 
-    private fun nextTurn() {
+    private fun nextPlayersTurn(): Player {
         val activePlayers = players.filter { !it.isEliminated }
-        currentPlayer = activePlayers[currentTurn.incrementAndGet() % activePlayers.size]
-        logger.debug { "=== Turn $currentTurn with Player ${currentPlayer.id} (${currentPlayer.spacesMoved}) ===" }
+        val nextPlayer = activePlayers[currentTurn.incrementAndGet() % activePlayers.size]
+        logger.debug { "=== Turn $currentTurn with Player ${nextPlayer.id} (${nextPlayer.spacesMoved}) ===" }
+        return nextPlayer
     }
 
-    private fun draw(p: Player = currentPlayer, log: Boolean = true): Card {
+    private fun drawCard(p: Player, log: Boolean = true): Card {
         val c = deck.removeFirst()
         p.gainCard(c)
         if (log) logger.debug { "Player ${p.id} drew a ${if (c.isHopForward) "Hop Forward" else "'${c.letter}'"}." }
@@ -152,7 +153,7 @@ class Game(private val numOfPlayers: Int) {
         return p.handSize() == 0 && !doesDeckHaveCards()
     }
 
-    private fun eliminatePlayer(p: Player): Boolean {
+    private fun eliminate(p: Player): Boolean {
         return if (canEliminate((p)) && !p.isEliminated) {
             logger.debug { "## Player ${p.id} cannot win and must be eliminated." }
             p.eliminate()
@@ -162,7 +163,7 @@ class Game(private val numOfPlayers: Int) {
 
     private fun handSizeAndDeckCheck(p: Player): Boolean {
         return if (shouldDrawCard(p)) {
-            draw(p)
+            drawCard(p)
             true
         } else !(p.handSize() == 0 && !doesDeckHaveCards())
     }
@@ -173,7 +174,7 @@ class Game(private val numOfPlayers: Int) {
             logger.debug { "Player ${p.id} played a Hop Forward." }
             p.playCard(hopCard)
             p.moveSpace()
-            if (shouldDrawCard(p)) draw(p)
+            if (shouldDrawCard(p)) drawCard(p)
         }
     }
 
