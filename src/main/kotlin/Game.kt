@@ -1,3 +1,4 @@
+import Game.Companion.HOP_CARDS_IN_DECK
 import mu.KotlinLogging
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -42,7 +43,8 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
             val p = if(isHumanPlaying && it == 0){
                 setupNewPlayer(it, startingHand, true)
             } else {
-                setupNewPlayer(it, startingHand, false, AIDifficulty.values()[it % AIDifficulty.values().size])
+                //setupNewPlayer(it, startingHand, false, AIDifficulty.values()[it % AIDifficulty.values().size])
+                setupNewPlayer(it, startingHand, false, AIDifficulty.EASY)
             }
             players.add(p)
         }
@@ -235,6 +237,7 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
 
     companion object {
         const val SPACES_TO_WIN = 6
+        const val HOP_CARDS_IN_DECK = 4
     }
 }
 
@@ -247,7 +250,7 @@ fun createCardList(): List<Card> {
         ++c
     }
     // Add 4 Hop Forward Cards to the deck
-    (0..3).forEach { _ ->
+    (0 until HOP_CARDS_IN_DECK).forEach { _ ->
         l.add(Card(' ', true))
     }
     return l

@@ -43,7 +43,7 @@ fun main() {
     }
     logger.info { "Average Spaces Moved: ${String.format("%.2f", averageSpaces)}" }
     logger.info { "Average Number of Turns: ${String.format("%.2f", averageTurns)}" }
-    logger.info { "Average Number of Hop Cards Played for Winner: ${String.format("%.2f", winsWithHopCards)}" }
+    logger.info { "Average Number of Hop Cards Played by Winner: ${String.format("%.2f", winsWithHopCards)}" }
     logger.info { "Shortest Game: ${aggregated.map { it.turns }.minByOrNull { it }}" }
     logger.info { "Longest Game: ${aggregated.map { it.turns }.maxByOrNull { it }}" }
     logger.info { "Average Game Time: ${String.format("%.2f", (averageTurns * 18 / 60))} minutes." }
