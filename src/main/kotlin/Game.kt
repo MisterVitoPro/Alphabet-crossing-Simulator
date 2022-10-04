@@ -43,8 +43,7 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
             val p = if(isHumanPlaying && it == 0){
                 setupNewPlayer(it, startingHand, true)
             } else {
-                //setupNewPlayer(it, startingHand, false, AIDifficulty.values()[it % AIDifficulty.values().size])
-                setupNewPlayer(it, startingHand, false, AIDifficulty.EASY)
+                setupNewPlayer(it, startingHand, false, AIDifficulty.values()[it % AIDifficulty.values().size])
             }
             players.add(p)
         }
