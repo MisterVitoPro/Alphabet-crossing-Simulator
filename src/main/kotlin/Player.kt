@@ -7,6 +7,8 @@ class Player(val id: Int, val aiDifficulty: AIDifficulty) {
 
     private val hand: MutableList<Card> = mutableListOf()
     private val myAskedCards: MutableList<Pair<Char, Player>> = mutableListOf()
+    var hopCardsPlayed: Int = 0
+        private set
 
     var spacesMoved = 0
         private set
@@ -31,6 +33,10 @@ class Player(val id: Int, val aiDifficulty: AIDifficulty) {
 
     fun handSize(): Int {
         return this.hand.size
+    }
+
+    fun incrementHopCardsPlayed(){
+        this.hopCardsPlayed += 1
     }
 
     fun printHand() {

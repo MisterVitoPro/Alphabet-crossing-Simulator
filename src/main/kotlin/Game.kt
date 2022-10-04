@@ -8,9 +8,10 @@ data class Card(val letter: Char, val isHopForward: Boolean = false)
 data class Results(
     val turns: Int,
     val deckSize: Int,
-    val winningPlayer: Player?,
+    val winningPlayer: Player,
     val playerMoves: List<Int>,
-    val players: List<Player>
+    val players: List<Player>,
+    val winningPlayerHopCardsPlayed: Int = winningPlayer.hopCardsPlayed
 )
 
 /**
@@ -19,7 +20,9 @@ data class Results(
 class Game(private val numOfPlayers: Int) {
 
     private val players: MutableList<Player> = mutableListOf()
-    private val cardList: MutableList<Card> = createCardList()
+    private val cardList: List<Card> by lazy {
+        createCardList()
+    }
     private val deck: MutableList<Card> = mutableListOf()
     private val currentTurn = AtomicInteger()
     private var previouslyAskedChars: HashMap<Char, Player> = HashMap()
@@ -174,6 +177,7 @@ class Game(private val numOfPlayers: Int) {
             logger.debug { "Player ${p.id} played a Hop Forward." }
             p.playCard(hopCard)
             p.moveSpace()
+            p.incrementHopCardsPlayed()
             if (shouldDrawCard(p)) drawCard(p)
         }
     }
@@ -196,7 +200,7 @@ class Game(private val numOfPlayers: Int) {
     }
 }
 
-fun createCardList(): MutableList<Card> {
+fun createCardList(): List<Card> {
     val l = mutableListOf<Card>()
     var c = 'a'
     while (c <= 'z') {
