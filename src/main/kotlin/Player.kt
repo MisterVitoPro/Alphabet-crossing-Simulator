@@ -3,10 +3,10 @@ import java.util.concurrent.ThreadLocalRandom
 
 private val logger = KotlinLogging.logger {}
 
-class Player(val id: Int, val aiDifficulty: AIDifficulty) {
+open class Player(val id: Int) {
 
-    private val hand: MutableList<Card> = mutableListOf()
-    private val myAskedCards: MutableList<Pair<Char, Player>> = mutableListOf()
+    protected val hand: MutableList<Card> = mutableListOf()
+    protected val myAskedCards: MutableList<Pair<Char, Player>> = mutableListOf()
     var hopCardsPlayed: Int = 0
         private set
 
@@ -56,7 +56,7 @@ class Player(val id: Int, val aiDifficulty: AIDifficulty) {
         logger.debug { "Player $id moves. ($spacesMoved)" }
     }
 
-    private fun createPairWithPrint(ch: Char, p: Player): Pair<Char, Player> {
+    protected fun createPairWithPrint(ch: Char, p: Player): Pair<Char, Player> {
         val pair = Pair(ch, p)
         this.printHand()
         logger.debug { "Player ${this.id} asks, \"Player ${pair.second.id}, do you have a(n) '${pair.first}'\"" }
@@ -69,7 +69,7 @@ class Player(val id: Int, val aiDifficulty: AIDifficulty) {
         myAskedCards.removeAll { it.first == askedChar }
     }
 
-    private fun getAvailableAsks(opponents: List<Player>): List<Pair<Char, Player>> {
+    protected fun getAvailableAsks(opponents: List<Player>): List<Pair<Char, Player>> {
         val l = mutableListOf<Pair<Char, Player>>()
         hand.map { it.letter }.forEach { char ->
             opponents.forEach { p ->
@@ -79,44 +79,4 @@ class Player(val id: Int, val aiDifficulty: AIDifficulty) {
         return l
     }
 
-    fun callForCard(players: List<Player>, previouslyAskedChars: HashMap<Char, Player>): Pair<Char, Player> {
-        val opponents: List<Player> = players.filter { it.id != this.id }
-
-        if (aiDifficulty != AIDifficulty.EASY) {
-            if (aiDifficulty != AIDifficulty.MEDIUM && previouslyAskedChars.size > 0) {
-                logger.debug { "Global Previously Asked: ${previouslyAskedChars.mapValues { "Player ${it.value.id}" }}" }
-                // Check if we have any letters that have been asked by other players
-                val handCharsInPreviouslyAsked: Char? = hand.map { it.letter }.firstOrNull { previouslyAskedChars.keys.contains(it) }
-                // If we have a letter that another player has asked, lets ask that player for the letter
-                if (handCharsInPreviouslyAsked != null && previouslyAskedChars[handCharsInPreviouslyAsked] != this) {
-                    return createPairWithPrint(handCharsInPreviouslyAsked, previouslyAskedChars[handCharsInPreviouslyAsked]!!)
-                }
-            }
-            // We want to ask a letter from a player that we have not already asked
-            if (myAskedCards.size > 0) {
-                logger.debug { "My previously Asked: ${myAskedCards.map { "${it.first}=Player ${it.second.id}" }}" }
-                val allAsks = getAvailableAsks(opponents)
-                val availableAsks = allAsks.filter { !myAskedCards.contains(it) }
-                if (availableAsks.isNotEmpty()) {
-                    val myPair = availableAsks.random()
-                    return createPairWithPrint(myPair.first, myPair.second)
-                }
-            }
-            val p = opponents.maxByOrNull { it.handSize() }!!
-            val pI = opponents.indexOf(p)
-            return createPairWithPrint(hand.map { it.letter }.random(), opponents[pI])
-        }
-
-        // Determine which player to ask for a card
-        val pIndex = ThreadLocalRandom.current().nextInt(0, opponents.size)
-        val p = opponents[pIndex]
-        val askLetter: Char = hand.map { it.letter }.random()
-        return createPairWithPrint(askLetter, p)
-    }
-}
-
-enum class AIDifficulty {
-    EASY, // Ask a random player
-    MEDIUM,
-    EXPERT
 }

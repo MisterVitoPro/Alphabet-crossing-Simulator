@@ -17,7 +17,7 @@ data class Results(
 /**
  * Creates a Game with n players
  */
-class Game(private val numOfPlayers: Int) {
+class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = false) {
 
     private val players: MutableList<Player> = mutableListOf()
     private val cardList: List<Card> by lazy {
@@ -39,7 +39,11 @@ class Game(private val numOfPlayers: Int) {
         deck.shuffle()
 
         (0 until numOfPlayers).forEach {
-            val p = setupNewPlayer(it, startingHand, AIDifficulty.values()[it % AIDifficulty.values().size])
+            val p = if(isHumanPlaying && it == 0){
+                setupNewPlayer(it, startingHand, true)
+            } else {
+                setupNewPlayer(it, startingHand, false, AIDifficulty.values()[it % AIDifficulty.values().size])
+            }
             players.add(p)
         }
 
@@ -53,8 +57,8 @@ class Game(private val numOfPlayers: Int) {
     /**
      * Creates a new Player, sets its difficulty, and creates the players starting hand
      */
-    private fun setupNewPlayer(id: Int, startingHand: Int, aiDifficulty: AIDifficulty): Player {
-        val p = Player(id, aiDifficulty)
+    private fun setupNewPlayer(id: Int, startingHand: Int, isHuman: Boolean, aiDifficulty: AIDifficulty = AIDifficulty.EASY): Player {
+        val p = if(isHuman) Player(id) else AIPlayer(id, aiDifficulty)
         (0 until startingHand).forEach { _ ->
             drawCard(p, false)
         }
@@ -68,8 +72,42 @@ class Game(private val numOfPlayers: Int) {
 
         var currentPlayer: Player = players[0]
         do {
+
+            val askedCard: Pair<Char, Player> = if(currentPlayer is AIPlayer){
+                currentPlayer.callForCard(players, previouslyAskedChars)
+            } else {
+                currentPlayer.printHand()
+
+                var letter: Char? = null
+                do {
+                    print("Call Letter: ")
+                    val l: Char? = readLine()!!.trim().toCharArray().getOrNull(0)
+                    if(l == null){
+                        println("Must be a single letter")
+                        continue
+                    }
+                    letter = if(currentPlayer.hasLetterCard(l) != null) l else null
+                    if(letter == null){
+                        println("Not a valid letter. Valid numbers are [1-$numOfPlayers]")
+                    }
+                }while(letter==null)
+
+                var player: Player?
+                do {
+                    print("Call Player by Id (1-4): ")
+                    val id = Integer.valueOf(readLine())
+                    player = players.firstOrNull() { it.id == id && it.id != 0}
+                    if(player == null){
+                        println("Not a valid number. Valid numbers are [1-$numOfPlayers]")
+                    }
+                }while(player==null)
+
+
+
+                Pair(letter, player)
+            }
             // Ask for Card
-            val askedCard: Pair<Char, Player> = currentPlayer.callForCard(players, previouslyAskedChars)
+
             val hadMatch = askPlayerAndCheckMatches(currentPlayer, askedCard)
 
             // Check if players need to draw cards
@@ -81,7 +119,7 @@ class Game(private val numOfPlayers: Int) {
 
             // Check for a Winner
             if (hasWinner()) {
-                logger.info { "!!!!!! Player ${currentPlayer.id} Won in $currentTurn Turns (${currentPlayer.aiDifficulty}) !!!!!!" }
+                logger.info { "!!!!!! Player ${currentPlayer.id} Won in $currentTurn Turns !!!!!!" }
                 break
             }
 
