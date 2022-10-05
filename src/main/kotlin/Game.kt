@@ -40,7 +40,7 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
         deck.shuffle()
 
         (0 until numOfPlayers).forEach {
-            val p = if(isHumanPlaying && it == 0){
+            val p = if (isHumanPlaying && it == 0) {
                 setupNewPlayer(it, startingHand, true)
             } else {
                 setupNewPlayer(it, startingHand, false, AIDifficulty.values()[it % AIDifficulty.values().size])
@@ -58,8 +58,13 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
     /**
      * Creates a new Player, sets its difficulty, and creates the players starting hand
      */
-    private fun setupNewPlayer(id: Int, startingHand: Int, isHuman: Boolean, aiDifficulty: AIDifficulty = AIDifficulty.EASY): Player {
-        val p = if(isHuman) Player(id) else AIPlayer(id, aiDifficulty)
+    private fun setupNewPlayer(
+        id: Int,
+        startingHand: Int,
+        isHuman: Boolean,
+        aiDifficulty: AIDifficulty = AIDifficulty.EASY
+    ): Player {
+        val p = if (isHuman) Player(id) else AIPlayer(id, aiDifficulty)
         (0 until startingHand).forEach { _ ->
             drawCard(p, false)
         }
@@ -74,7 +79,7 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
         var currentPlayer: Player = players[0]
         do {
 
-            val askedCard: Pair<Char, Player> = if(currentPlayer is AIPlayer){
+            val askedCard: Pair<Char, Player> = if (currentPlayer is AIPlayer) {
                 currentPlayer.callForCard(players, previouslyAskedChars)
             } else {
                 currentPlayer.printHand()
@@ -83,28 +88,25 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
                 do {
                     print("Call Letter: ")
                     val l: Char? = readLine()!!.trim().toCharArray().getOrNull(0)
-                    if(l == null){
+                    if (l == null) {
                         println("Must be a single letter")
                         continue
                     }
-                    letter = if(currentPlayer.hasLetterCard(l) != null) l else null
-                    if(letter == null){
+                    letter = if (currentPlayer.hasLetterCard(l) != null) l else null
+                    if (letter == null) {
                         println("Not a valid letter. Valid numbers are [1-$numOfPlayers]")
                     }
-                }while(letter==null)
+                } while (letter == null)
 
                 var player: Player?
                 do {
                     print("Call Player by Id (1-4): ")
                     val id = Integer.valueOf(readLine())
-                    player = players.firstOrNull() { it.id == id && it.id != 0}
-                    if(player == null){
+                    player = players.firstOrNull() { it.id == id && it.id != 0 }
+                    if (player == null) {
                         println("Not a valid number. Valid numbers are [1-$numOfPlayers]")
                     }
-                }while(player==null)
-
-
-
+                } while (player == null)
                 Pair(letter, player)
             }
             // Ask for Card
@@ -136,7 +138,7 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
         return Results(currentTurn.get(), deck.size, currentPlayer, players.map { it.spacesMoved }, players)
     }
 
-    private fun askPlayerAndCheckMatches(askingPlayer:  Player, playerCardAsk: Pair<Char, Player>): Boolean {
+    private fun askPlayerAndCheckMatches(askingPlayer: Player, playerCardAsk: Pair<Char, Player>): Boolean {
         val askedPlayer = playerCardAsk.second
         val char = playerCardAsk.first
         val card: Card? = askedPlayer.hasLetterCard(char)

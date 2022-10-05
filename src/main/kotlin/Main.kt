@@ -13,7 +13,7 @@ fun main() {
     print("Human Playing (y/n): ")
     val humanPlaying: Boolean = readLine().equals("y")
 
-    val numOfGames = if(!humanPlaying) {
+    val numOfGames = if (!humanPlaying) {
         print("Set Number of Games to Simulate: ")
         Integer.valueOf(readLine())
     } else {
@@ -36,7 +36,7 @@ fun main() {
     logger.info { "--------------- SIMULATION COMPLETE ---------------" }
     logger.info { "Games Played: ${aggregated.size}" }
 
-    if(!humanPlaying) {
+    if (!humanPlaying) {
         for (w in playerWins) {
             logger.info { "${w.key} (${w.value} wins) - ${(aggregated[0].players.first { it.id == w.key } as AIPlayer).aiDifficulty}" }
         }
@@ -50,12 +50,22 @@ fun main() {
     winPercentageLikelihoodWhenPlayHopCard(aggregated)
 }
 
-fun winPercentageLikelihoodWhenPlayHopCard(aggregated: MutableList<Results>){
-    val winsWithHopCardPlayed = aggregated.map { it.winningPlayerHopCardsPlayed }.groupingBy { it }.eachCount().toSortedMap()
-    val lossesWithHopCardPlayed = aggregated.map { r -> r.players.filter { it != r.winningPlayer }.map { it.hopCardsPlayed } }.flatten().groupingBy { it }.eachCount().toSortedMap()
-    for(n in winsWithHopCardPlayed){
-        if(lossesWithHopCardPlayed[n.key] != null){
-            logger.info {"Playing ${n.key} Hop Cards: ${String.format("%.2f", min((n.value.toDouble()/lossesWithHopCardPlayed[n.key]!!)*100.00, 100.00)) }% you are likely to win."}
+fun winPercentageLikelihoodWhenPlayHopCard(aggregated: MutableList<Results>) {
+    val winsWithHopCardPlayed =
+        aggregated.map { it.winningPlayerHopCardsPlayed }.groupingBy { it }.eachCount().toSortedMap()
+    val lossesWithHopCardPlayed =
+        aggregated.map { r -> r.players.filter { it != r.winningPlayer }.map { it.hopCardsPlayed } }.flatten()
+            .groupingBy { it }.eachCount().toSortedMap()
+    for (n in winsWithHopCardPlayed) {
+        if (lossesWithHopCardPlayed[n.key] != null) {
+            logger.info {
+                "Playing ${n.key} Hop Cards: ${
+                    String.format(
+                        "%.2f",
+                        min((n.value.toDouble() / lossesWithHopCardPlayed[n.key]!!) * 100.00, 100.00)
+                    )
+                }% you are likely to win."
+            }
         }
     }
 

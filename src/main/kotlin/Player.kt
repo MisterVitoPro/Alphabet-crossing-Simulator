@@ -35,7 +35,7 @@ open class Player(val id: Int) {
         return this.hand.size
     }
 
-    fun incrementHopCardsPlayed(){
+    fun incrementHopCardsPlayed() {
         this.hopCardsPlayed += 1
     }
 

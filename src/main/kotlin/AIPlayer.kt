@@ -18,10 +18,14 @@ class AIPlayer(id: Int, val aiDifficulty: AIDifficulty) : Player(id) {
             if (aiDifficulty != AIDifficulty.MEDIUM && previouslyAskedChars.size > 0) {
                 logger.debug { "Global Previously Asked: ${previouslyAskedChars.mapValues { "Player ${it.value.id}" }}" }
                 // Check if we have any letters that have been asked by other players
-                val handCharsInPreviouslyAsked: Char? = hand.map { it.letter }.firstOrNull { previouslyAskedChars.keys.contains(it) }
+                val handCharsInPreviouslyAsked: Char? =
+                    hand.map { it.letter }.firstOrNull { previouslyAskedChars.keys.contains(it) }
                 // If we have a letter that another player has asked, lets ask that player for the letter
                 if (handCharsInPreviouslyAsked != null && previouslyAskedChars[handCharsInPreviouslyAsked] != this) {
-                    return createPairWithPrint(handCharsInPreviouslyAsked, previouslyAskedChars[handCharsInPreviouslyAsked]!!)
+                    return createPairWithPrint(
+                        handCharsInPreviouslyAsked,
+                        previouslyAskedChars[handCharsInPreviouslyAsked]!!
+                    )
                 }
             }
             // We want to ask a letter from a player that we have not already asked
