@@ -22,8 +22,8 @@ fun main() {
     println("Number of Games set to: $numOfGames")
     val aggregated: MutableList<Results> = mutableListOf<Results>()
 
-    (0 until numOfGames).forEach { _ ->
-        val r = Game(numOfPlayer, humanPlaying).run()
+    (0 until numOfGames).forEach { i ->
+        val r = Game(numOfPlayer, humanPlaying, i.toString()).run()
         aggregated.add(r)
     }
 
@@ -44,8 +44,12 @@ fun main() {
     logger.info { "Average Spaces Moved: ${String.format("%.2f", averageSpaces)}" }
     logger.info { "Average Number of Turns: ${String.format("%.2f", averageTurns)}" }
     logger.info { "Average Number of Hop Cards Played by Winner: ${String.format("%.2f", winsWithHopCards)}" }
-    logger.info { "Shortest Game: ${aggregated.map { it.turns }.minByOrNull { it }}" }
-    logger.info { "Longest Game: ${aggregated.map { it.turns }.maxByOrNull { it }}" }
+    val shortestGame = aggregated.minWith(Comparator.comparingInt { it.turns })
+    logger.info { "Shortest Game: ${shortestGame.turns} (Game:${shortestGame.gameName})" }
+//    logger.info { "Shortest Game: ${aggregated.map { it.turns }.minByOrNull { it }}" }
+    val longestGame = aggregated.maxWith(Comparator.comparingInt { it.turns })
+    logger.info { "Longest Game: ${longestGame.turns} (Game:${longestGame.gameName})" }
+//    logger.info { "Longest Game: ${aggregated.map { it.turns }.maxByOrNull { it }}" }
     logger.info { "Average Game Time: ${String.format("%.2f", (averageTurns * 18 / 60))} minutes." }
     winPercentageLikelihoodWhenPlayHopCard(aggregated)
 }

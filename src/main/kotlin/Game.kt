@@ -7,6 +7,7 @@ private val logger = KotlinLogging.logger {}
 data class Card(val letter: Char, val isHopForward: Boolean = false)
 
 data class Results(
+    val gameName: String,
     val turns: Int,
     val deckSize: Int,
     val winningPlayer: Player,
@@ -18,7 +19,7 @@ data class Results(
 /**
  * Creates a Game with n players
  */
-class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = false) {
+class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = false, private val gameName: String = "Default Game") {
 
     private val players: MutableList<Player> = mutableListOf()
     private val cardList: List<Card> by lazy {
@@ -73,7 +74,7 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
     }
 
     fun run(): Results {
-        println("########## Starting new Game ##########")
+        logger.info { "########## Starting new Game ##########" }
         setup()
 
         var currentPlayer: Player = players[0]
@@ -135,7 +136,8 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
             }
         } while (currentTurn.get() < 150)
 
-        return Results(currentTurn.get(), deck.size, currentPlayer, players.map { it.spacesMoved }, players)
+        logger.info { "------------=== Game '$gameName' Finished ===------------" }
+        return Results(gameName, currentTurn.get(), deck.size, currentPlayer, players.map { it.spacesMoved }, players)
     }
 
     private fun askPlayerAndCheckMatches(askingPlayer: Player, playerCardAsk: Pair<Char, Player>): Boolean {
@@ -161,8 +163,9 @@ class Game(private val numOfPlayers: Int, private val isHumanPlaying: Boolean = 
 
     private fun nextPlayersTurn(): Player {
         val activePlayers = players.filter { !it.isEliminated }
-        val nextPlayer = activePlayers[currentTurn.incrementAndGet() % activePlayers.size]
-        logger.debug { "=== Turn $currentTurn with Player ${nextPlayer.id} (${nextPlayer.spacesMoved}) ===" }
+        val nextPlayer: Player = activePlayers[currentTurn.incrementAndGet() % activePlayers.size]
+        val aiString: String = if(nextPlayer is AIPlayer) "AI-${nextPlayer.aiDifficulty}" else "Human"
+        logger.info { "=== Turn $currentTurn with Player ${nextPlayer.id} [$aiString] (${nextPlayer.spacesMoved}) ===" }
         return nextPlayer
     }
 
